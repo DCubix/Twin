@@ -1,0 +1,11 @@
+.vs/
+x64/
+x86/
+Release/
+Debug/
+*.exe
+*.dll
+*.tuser
+*.user
+*.sdf
+
