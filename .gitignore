@@ -1,11 +1,12 @@
 .vs/
+.vscode/
 x64/
 x86/
 Release/
 Debug/
+build/
 *.exe
 *.dll
 *.tuser
 *.user
 *.sdf
-

@@ -11,9 +11,15 @@
 #define TWIN_PI 3.141592654f
 #define TWIN_EPSILON 1e-5f
 #define TWIN_LERP(a, b, t) ((1.0f - t) * a + b * t)
+#define TWIN_CLAMP(v, a, b) std::min(std::max(v, a), b)
 
 namespace twin {
 	namespace funcs {
+		inline float Step(float t) { return t >= 0.5f ? 1.0f : 0.0f; }
+		inline float SmoothStep(float t, float e0 = 0.0f, float e1 = 1.0f) {
+			t = TWIN_CLAMP((t - e0) / (e1 - e0), 0.0f, 1.0f);
+			return t * t * (3.0f - 2.0f * t);
+		}
 		inline float Linear(float t) { return t; }
 		inline float InQuad(float t) { return t * t; }
 		inline float OutQuad(float t) { return t * (2.0f - t); }
@@ -63,7 +69,8 @@ namespace twin {
 		}
 		inline float InElastic(float t) {
 			float s = TWIN_PENNER;
-			float p = 0.0f, a = 1.0f;
+			float p = 0.0f;
+			float a = 1.0f;
 			if (t <= TWIN_EPSILON) return 0.0f;
 			if (t >= 1.0f - TWIN_EPSILON) return 1.0f;
 			if (!p) p = 0.3f;
@@ -151,25 +158,27 @@ namespace twin {
 		}
 
 		inline void update(float dt) {
-			if (m_time >= 1.0f + TWIN_EPSILON) {
+			const float dur = m_duration + dt;
+			if (m_time >= dur) {
 				if (!m_loop) return;
 				else m_time = 0.0f;
 			}
 			if (m_keys.empty() || m_keys.size() < 2) return;
 
+			float t = m_time / dur;
 			const float tfac = 1.0f / (m_keys.size()-1);
 			for (size_t i = 0; i < m_keys.size() - 1; i++) {
 				float ta = m_keys[i].time > -1.0f ? m_keys[i].time : i * tfac;
 				float tb = m_keys[i + 1].time > -1.0f ? m_keys[i + 1].time : (i + 1) * tfac;
-				if (m_time >= ta && m_time <= tb) {
-					float factor = (m_time - ta) / (tb - ta);
+				if (t >= ta && t <= tb) {
+					float factor = (t - ta) / (tb - ta);
 					float t = m_keys[i].easing(factor);
 					for (size_t j = 0; j < m_values.size(); j++)
 						*m_values[j] = TWIN_LERP(m_keys[i].values[j], m_keys[i + 1].values[j], t);
 					break;
 				}
 			}
-			m_time += dt / m_duration;
+			m_time += dt;
 		}
 		
 		inline Twin() = default;

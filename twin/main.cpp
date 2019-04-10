@@ -1,5 +1,10 @@
 #include <iostream>
+
+#if defined(MSVC)
 #include <SDL.h>
+#else
+#include "SDL2/SDL.h"
+#endif
 
 #include "twin.hpp"
 
@@ -19,6 +24,10 @@ int main(int argc, char** argv) {
 	const int bw = 100;
 	const int bh = 32;
 
+	auto smoothstep = [](float t) {
+		return twin::funcs::SmoothStep(t, 0.4f, 1.0f);
+	};
+
 	float pos[bw * bh * 2];
 	float col[bw * bh * 3];
 	twin::Twin posTween[bw * bh];
@@ -27,15 +36,15 @@ int main(int argc, char** argv) {
 		for (int x = 0; x < bw; x++) {
 			int i = (x + y * bw), j = i * 2, k = i * 3;
 			float rnd = frnd / float(bw);
-			posTween[i] = twin::Twin({ &pos[j], &pos[j + 1] }, 3.0f + rnd * x)
-				.key({ x * 5.0f + (320 - 2.5f * bw), -200.0f }, twin::funcs::OutElastic)
+			posTween[i] = twin::Twin({ &pos[j], &pos[j + 1] }, 2.0f + rnd * x)
+				.key({ x * 5.0f + (320 - 2.5f * bw), 50.0f }, twin::funcs::InOutBack)
 				.key({ x * 5.0f + (320 - 2.5f * bw), y * 5.0f + (240 - 2.5f * bh) });
 
 			float fx = float(x) / bw;
 			float fy = float(y) / bh;
-			colTween[i] = twin::Twin({ &col[k], &col[k + 1], &col[k + 2] }, 3.0f + rnd * x, true)
-				.key({ 0.0f, 0.0f, 0.0f }, 0.0f)
-				.key({ fx, fy, 1.0f }, 0.7f)
+			colTween[i] = twin::Twin({ &col[k], &col[k + 1], &col[k + 2] }, 2.0f + x * rnd, true)
+				.key({ 0.0f, 0.0f, 0.0f }, smoothstep, 0.0f)
+				.key({ fx, fy, 1.0f }, smoothstep, 0.5f)
 				.key({ 0.0f, 0.0f, 0.0f }, 1.0f);
 		}
 	}
